@@ -50,6 +50,10 @@ server {
     ssl_certificate /etc/ssl/private/server.crt;
     ssl_certificate_key /etc/ssl/private/server.key;
 
+    # === DYNAMIC DNS RESOLUTION FOR DOCKER SWARM ===
+    # Using Docker's internal DNS server (127.0.0.11) and setting a short cache (5s)
+    resolver 127.0.0.11 valid=5s;
+
     # Security headers
     add_header Strict-Transport-Security "max-age=15768000; includeSubDomains; preload;" always;
     add_header X-Content-Type-Options nosniff;
@@ -64,8 +68,10 @@ server {
     }
     
     location /nextcloud/ {
-        # Add trailing slash to proxy_pass to strip /nextcloud/ from path
-        proxy_pass http://rpi_home_app:80/;
+        # Set service hostname as a variable for dynamic DNS resolution
+        set \$nextcloud_host "rpi_home_app";
+        # Use variable in proxy_pass
+        proxy_pass http://\$nextcloud_host:80/;
         
         # Essential headers for Nextcloud
         proxy_set_header Host \$host;
@@ -99,7 +105,10 @@ server {
     }
     
     location /plex/ {
-        proxy_pass http://rpi_home_plex:8096/;
+        # Set service hostname as a variable for dynamic DNS resolution
+        set \$plex_host "rpi_home_plex";
+        # Use variable in proxy_pass
+        proxy_pass http://\$plex_host:32400/; # Opravený port na 32400 (dle docker-compose)
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -127,7 +136,10 @@ server {
     }
     
     location /ws/ {
-        proxy_pass http://rpi_home_webshare-search:5000/;
+        # Set service hostname as a variable for dynamic DNS resolution
+        set \$webshare_host "rpi_home_webshare-search";
+        # Use variable in proxy_pass
+        proxy_pass http://\$webshare_host:5000/;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
@@ -142,7 +154,10 @@ server {
 
     # Home Assistant - proxy entire root to HA
     location / {
-        proxy_pass http://rpi_home_homeassistant:8123;
+        # Set service hostname as a variable for dynamic DNS resolution
+        set \$ha_host "rpi_home_homeassistant";
+        # Use variable in proxy_pass
+        proxy_pass http://\$ha_host:8123;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
