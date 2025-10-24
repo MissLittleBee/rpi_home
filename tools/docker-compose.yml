@@ -119,7 +119,7 @@ services:
     image: rpi_home_webshare-search:latest
     deploy:
       placement:
-        constraints: [node.role == manager]
+        constraints: [ node.role == manager ]
       restart_policy:
         condition: on-failure
     ports:
@@ -135,9 +135,6 @@ services:
     user: "${HOST_UID:-1000}:${MEDIA_GID:-1001}" # Run with media group for proper file permissions
     networks:
       - internal
-    deploy:
-      restart_policy:
-        condition: on-failure
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
