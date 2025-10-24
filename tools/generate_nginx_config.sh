@@ -93,19 +93,19 @@ server {
         proxy_http_version 1.1;
     }
 
-    # Jellyfin media server - proxy through nginx for VPN compatibility
-    location /jellyfin {
-        return 302 https://\$host/jellyfin/;
+    # Plex media server - proxy through nginx for VPN compatibility
+    location /plex {
+        return 302 https://\$host/plex/;
     }
     
-    location /jellyfin/ {
-        proxy_pass http://rpi_home_jellyfin:8096/;
+    location /plex/ {
+        proxy_pass http://rpi_home_plex:8096/;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header X-Forwarded-Host \$host;
-        proxy_set_header X-Forwarded-Prefix /jellyfin;
+        proxy_set_header X-Forwarded-Prefix /plex;
         proxy_buffering off;
         proxy_read_timeout 3600;
         proxy_connect_timeout 300;
@@ -118,7 +118,7 @@ server {
     }
     
     location /dlna {
-        return 302 https://\$host/jellyfin/;
+        return 302 https://\$host/plex/;
     }
 
     # Webshare Search service

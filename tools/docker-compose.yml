@@ -19,7 +19,7 @@ services:
     image: mariadb:10.11
     deploy:
       placement:
-        constraints: [node.role == manager]
+        constraints: [ node.role == manager ]
       restart_policy:
         condition: on-failure
     volumes:
@@ -39,7 +39,7 @@ services:
     image: nextcloud:stable
     deploy:
       placement:
-        constraints: [node.role == manager]
+        constraints: [ node.role == manager ]
       restart_policy:
         condition: on-failure
     depends_on:
@@ -52,7 +52,7 @@ services:
       - ${DOC_PATH}:/var/www/html/data/${NEXTCLOUD_USER}/files/Documents
     secrets:
       - db_password
-    user: "33:${MEDIA_GID:-1001}"  # www-data user with media group
+    user: "33:${MEDIA_GID:-1001}" # www-data user with media group
     environment:
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
@@ -88,22 +88,27 @@ services:
       restart_policy:
         condition: on-failure
 
-  jellyfin:
-    image: linuxserver/jellyfin
+  plex:
+    image: linuxserver/plex:latest
     ports:
-      - "8096:8096/tcp"    # Web interface
-      - "8920:8920/tcp"    # HTTPS (optional)
-      - "7359:7359/udp"    # Auto-discovery
-      - "1900:1900/udp"    # DLNA
+      - "32400:32400/tcp" # Web API Plex
+      - "1900:1900/udp" # DLNA
+      - "3005:3005/tcp" # Plex Companion
+      - "8324:8324/tcp" # Roku via Plex Companion
+      - "32469:32469/tcp" # Plex DLNA Server
+      - "32410:32410/udp" # GDM network discovery
+      - "32412:32412/udp" # GDM network discovery
+      - "32413:32413/udp" # GDM network discovery
+      - "32414:32414/udp" # GDM network discovery
     volumes:
-      - ../volumes/jellyfin/config:/config
-      - ../volumes/jellyfin/cache:/cache
+      - ../volumes/plex/config:/config
       - ${VIDEO_PATH}:/media/videos:ro
     environment:
       - PUID=${HOST_UID:-1000}
       - PGID=${MEDIA_GID:-1001}
       - TZ=${TIMEZONE}
-      - JELLYFIN_PublishedServerUrl=http://${HOSTNAME}:8096
+      - VERSION=docker
+      - PLEX_CLAIM= # chooseable - plex.tv/claim
     networks:
       - internal
     deploy:
@@ -122,14 +127,14 @@ services:
       - PORT=5000
       - DEBUG=false
       - DOWNLOAD_PATH=/downloads
-    user: "${HOST_UID:-1000}:${MEDIA_GID:-1001}"  # Run with media group for proper file permissions
+    user: "${HOST_UID:-1000}:${MEDIA_GID:-1001}" # Run with media group for proper file permissions
     networks:
       - internal
     deploy:
       restart_policy:
         condition: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

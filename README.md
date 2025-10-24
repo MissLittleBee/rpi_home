@@ -19,7 +19,7 @@ This project provides a **fully automated, zero-configuration** home server stac
 - **🔒 Nginx Reverse Proxy** - SSL-terminated proxy with dynamic configuration and mobile app support
 - **☁️ Nextcloud** - Self-hosted file sharing and collaboration platform with multi-directory support (Videos, Images, Documents)
 - **🏡 Home Assistant** - Home automation and IoT device management platform
-- **🎬 Jellyfin** - Media server for streaming videos and photos with multi-library support
+- **🎬 Plex** - Media server for streaming videos and photos with multi-library support
 - **🔍 Webshare Search** - English web interface for searching and downloading from webshare.cz with real-time progress tracking
 - **🗄️ MariaDB** - Database backend for Nextcloud
 - **🔄 Automated Maintenance** - Scheduled sync (every 10 minutes) and Docker cleanup (every 6 hours)
@@ -30,7 +30,7 @@ This project provides a **fully automated, zero-configuration** home server stac
 Internet → Nginx (SSL) → Internal Services
                 ├── Nextcloud (/nextcloud) ←──┐
                 ├── Home Assistant (/)        │ Auto-Sync
-                ├── Jellyfin (/jellyfin) ←────┘ (Every 10min)
+                ├── Plex (/plex) ←────┘ (Every 10min)
                 └── Webshare Search (/ws)
 ```
 
@@ -40,9 +40,9 @@ Internet → Nginx (SSL) → Internal Services
 - **Shared Access**: All services access storage with proper `media` group permissions (GID 1001)
 - **Automatic Permissions**: setgid directories ensure new files get correct group ownership
 - **Scheduled Maintenance**: Permission fixes every 6 hours via automated cleanup
-- **Multi-Library Support**: Jellyfin serves both video and photo libraries
+- **Multi-Library Support**: Plex serves both video and photo libraries
 - **Progress Tracking**: Real-time download progress bars with English interface
-- **Cross-Platform Visibility**: Files automatically visible in Nextcloud, Jellyfin, and mobile apps
+- **Cross-Platform Visibility**: Files automatically visible in Nextcloud, Plex, and mobile apps
 
 ## 🚀 Quick Start
 
@@ -105,7 +105,7 @@ During setup, you'll be asked for:
 Services will be available at your configured hostname/IP:
 - **Home Assistant**: `https://[your-hostname]/`
 - **Nextcloud**: `https://[your-hostname]/nextcloud/`
-- **Jellyfin**: `https://[your-hostname]/jellyfin/`
+- **Plex**: `https://[your-hostname]/plex/`
 - **Webshare Search**: `https://[your-hostname]/ws/`
 
 All services are automatically configured with proper authentication and media library synchronization.
@@ -136,7 +136,7 @@ rpi_home/
 │   │   ├── config/            # HA configuration files (tracked in Git)
 │   │   └── data/              # HA runtime data (ignored)
 │   ├── nextcloud/             # Nextcloud data (ignored)
-│   ├── jellyfin/              # Jellyfin data (ignored)
+│   ├── plex/              # Plex data (ignored)
 │   └── webshare/              # Webshare search application
 ├── logs/                      # 📄 Application logs
 └── README.md                  # 📖 This documentation
@@ -171,7 +171,7 @@ rpi_home/
 **🔄 Sync Management**
 
 ```bash
-# Manual sync (triggers immediate Nextcloud + Jellyfin refresh)
+# Manual sync (triggers immediate Nextcloud + Plex refresh)
 ./tools/scheduled-sync.sh
 
 # Check sync logs
@@ -303,7 +303,7 @@ sudo rm -rf volumes/nextcloud/
 ./home_start.sh  # Will trigger fresh auto-setup
 ```
 
-### 🎬 Jellyfin & Media Libraries
+### 🎬 Plex & Media Libraries
 
 Media files are organized in separate directories with automated management:
 
@@ -315,7 +315,7 @@ Media files are organized in separate directories with automated management:
 **Permission System:**
 - **Media Group**: All services use shared `media` group (GID 1001)
 - **Automatic Ownership**: New files inherit correct group via setgid directories
-- **Cross-Service Access**: Webshare downloads → Jellyfin indexing → Nextcloud visibility
+- **Cross-Service Access**: Webshare downloads → Plex indexing → Nextcloud visibility
 
 **Auto-Sync Features:**
 - ✅ Libraries sync every 10 minutes automatically
@@ -359,7 +359,7 @@ Advanced web interface for webshare.cz API integration with comprehensive real-t
    ```
 2. Application auto-authenticates using environment variables
 2. Downloads save directly to `$VIDEO_PATH` with correct media group permissions
-4. Files automatically appear in Nextcloud and Jellyfin within 10 minutes via scheduled sync
+4. Files automatically appear in Nextcloud and Plex within 10 minutes via scheduled sync
 
 ### SSL Certificates
 
@@ -374,7 +374,7 @@ Self-signed certificates are generated automatically. For production use:
 
 - **80/443** - Nginx (HTTP/HTTPS reverse proxy)
 - **8123** - Home Assistant (direct access, also available via proxy at /)
-- **8096** - Jellyfin (direct access, also available via proxy at /jellyfin/)
+- **8096** - Plex (direct access, also available via proxy at /plex/)
 - **5000** - Webshare Search (direct access, also available via proxy at /ws/)
 
 ### DNS
@@ -389,7 +389,7 @@ Add to `/etc/hosts` or configure local DNS:
 For VPN access without local DNS, use IP addresses directly:
 - **Home Assistant**: https://10.10.20.1/
 - **Nextcloud**: https://10.10.20.1/nextcloud/
-- **Jellyfin**: https://10.10.20.1/jellyfin/
+- **Plex**: https://10.10.20.1/plex/
 - **Webshare Search**: https://10.10.20.1/ws/
 
 ## 🔐 Security
@@ -422,7 +422,7 @@ tail -f logs/scheduled-sync.log
 Access service status pages:
 - **Home Assistant**: System → Info
 - **Nextcloud**: Settings → Administration → System  
-- **Jellyfin**: https://ha.local/jellyfin/ → Dashboard → System
+- **Plex**: https://ha.local/plex/ → Dashboard → System
 - **Webshare**: http://ha.local:5000/health (API endpoint)
 
 ### 🔄 Auto-Sync Monitoring
@@ -481,7 +481,7 @@ systemctl status cron
 ./tools/scheduled-sync.sh
 
 # Check for container readiness
-docker ps | grep -E "(nextcloud|jellyfin)"
+docker ps | grep -E "(nextcloud|plex)"
 
 # View sync error logs
 tail -20 logs/scheduled-sync.log
@@ -500,7 +500,7 @@ tail -20 logs/scheduled-cleanup.log
 
 # Force service refresh
 docker service update --force rpi_home_app
-docker service update --force rpi_home_jellyfin
+docker service update --force rpi_home_plex
 ```
 
 **Character encoding issues:**
@@ -534,7 +534,7 @@ docker system prune -a --volumes
 2. **Data directories** (backup separately):
    - `volumes/nextcloud/` (user files and database)
    - `volumes/homeassistant/data/` (runtime data)
-   - `volumes/jellyfin/` (metadata and configuration)
+   - `volumes/plex/` (metadata and configuration)
    - `$VIDEO_PATH` (video library)
    - `$IMAGE_PATH` (photo library)
    - `$DOC_PATH` (document storage)

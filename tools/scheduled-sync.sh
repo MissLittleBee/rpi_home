@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Scheduled sync script - runs every 10 minutes
-# This ensures both Jellyfin and Nextcloud stay in sync
+# This ensures both Plex and Nextcloud stay in sync
 
 # Get script directory and project root for proper path resolution
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,7 +24,7 @@ wait_for_containers() {
     local wait_time=0
     
     while [ $wait_time -lt $max_wait ]; do
-        if docker ps | grep -q "nextcloud" && docker ps | grep -q "jellyfin"; then
+        if docker ps | grep -q "nextcloud" && docker ps | grep -q "plex"; then
             log "Containers are ready"
             return 0
         fi
@@ -53,16 +53,16 @@ quick_nextcloud_scan() {
     fi
 }
 
-# Jellyfin API library refresh (non-disruptive)
-jellyfin_library_refresh() {
-    local container_id=$(docker ps --format "table {{.ID}}\t{{.Image}}" | grep "jellyfin" | awk '{print $1}' | head -1)
+# Plex API library refresh (non-disruptive)
+plex_library_refresh() {
+    local container_id=$(docker ps --format "table {{.ID}}\t{{.Image}}" | grep "plex" | awk '{print $1}' | head -1)
     if [ -n "$container_id" ]; then
-        log "Refreshing Jellyfin library via API..."
+        log "Refreshing Plex library via API..."
         # Try to refresh via API first (less disruptive)
         docker exec "$container_id" curl -s -X POST "http://localhost:8096/Library/Refresh" -H "Content-Type: application/json" &>/dev/null
-        log "Jellyfin library refresh triggered"
+        log "Plex library refresh triggered"
     else
-        log "ERROR: Jellyfin container not found"
+        log "ERROR: Plex container not found"
     fi
 }
 
@@ -76,5 +76,5 @@ fi
 
 quick_nextcloud_scan
 sleep 2
-jellyfin_library_refresh
+plex_library_refresh
 log "Scheduled sync job completed"

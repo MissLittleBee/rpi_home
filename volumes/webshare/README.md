@@ -15,7 +15,7 @@ A Python Flask web application that provides a user-friendly interface to search
 
 ### Set up Webshare.cz Credentials
 
-Edit the `.env` file in the project root directory and set your credentials:
+Edit the `.env` file in the project rooplext directory and set your credentials:
 
 ```bash
 WEBSHARE_USERNAME=your_username_here
