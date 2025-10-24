@@ -116,7 +116,12 @@ services:
         condition: on-failure
 
   webshare-search:
-    image: rpi_home_webshare-search
+    image: rpi_home_webshare-search:latest
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
     ports:
       - "5000:5000/tcp"
     volumes:
